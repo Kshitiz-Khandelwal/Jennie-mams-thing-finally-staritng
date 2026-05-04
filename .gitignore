@@ -1,0 +1,13 @@
+# Ignore dataset folder
+WFDBRecords/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Optional: ignore large model files (if needed)
+# model.pth
+
+# OS / editor junk
+.DS_Store
+.vscode/

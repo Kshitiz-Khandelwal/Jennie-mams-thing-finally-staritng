@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Heart Disease Prediction - ML Model Comparison Dashboard">
+    <title>Heart Disease ML Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-badge">
+            <span class="dot"></span>
+            ML Case Study
+        </div>
+        <h1>Heart Disease Prediction</h1>
+        <p>Train, evaluate, and compare Logistic Regression, Decision Tree & Random Forest models side-by-side.</p>
+    </header>
+
+    <!-- Train Button -->
+    <div class="train-section">
+        <button class="btn-train" id="btnTrain" onclick="trainModels()">
+            <span class="icon">🚀</span>
+            <span id="btnTrainText">Train & Evaluate Models</span>
+        </button>
+    </div>
+
+    <!-- Dataset Info -->
+    <div id="datasetBar" class="dataset-bar" style="display: none;"></div>
+
+    <!-- Model Cards -->
+    <div id="modelsSection" style="display: none;">
+        <h2 class="section-title"><span class="emoji">📊</span> Model Performance</h2>
+        <div id="modelsGrid" class="models-grid"></div>
+    </div>
+
+    <!-- Chart -->
+    <div id="chartsSection" class="charts-section" style="display: none;">
+        <h2 class="section-title"><span class="emoji">📈</span> Comparison Chart</h2>
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction -->
+    <div id="predictionSection" class="prediction-section" style="display: none;">
+        <h2 class="section-title"><span class="emoji">🔮</span> Predict on New Patient</h2>
+        <div class="prediction-card">
+            <form id="predictForm" onsubmit="predictPatient(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" placeholder="e.g. 55" step="1" min="1" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sex">Sex</label>
+                        <select id="sex" name="sex" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cp">Chest Pain Type</label>
+                        <select id="cp" name="cp" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="1">Typical Angina</option>
+                            <option value="2">Atypical Angina</option>
+                            <option value="3">Non-Anginal</option>
+                            <option value="4">Asymptomatic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="trestbps">Resting BP (mm Hg)</label>
+                        <input type="number" id="trestbps" name="trestbps" placeholder="e.g. 130" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chol">Cholesterol (mg/dl)</label>
+                        <input type="number" id="chol" name="chol" placeholder="e.g. 250" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fbs">Fasting Blood Sugar > 120</label>
+                        <select id="fbs" name="fbs" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="restecg">Resting ECG</label>
+                        <select id="restecg" name="restecg" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="0">Normal</option>
+                            <option value="1">ST-T Abnormality</option>
+                            <option value="2">LV Hypertrophy</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="thalach">Max Heart Rate</label>
+                        <input type="number" id="thalach" name="thalach" placeholder="e.g. 150" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="exang">Exercise Induced Angina</label>
+                        <select id="exang" name="exang" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="oldpeak">ST Depression (Oldpeak)</label>
+                        <input type="number" id="oldpeak" name="oldpeak" placeholder="e.g. 1.5" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="slope">Slope of ST Segment</label>
+                        <select id="slope" name="slope" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="1">Upsloping</option>
+                            <option value="2">Flat</option>
+                            <option value="3">Downsloping</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ca">Major Vessels (0-3)</label>
+                        <select id="ca" name="ca" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="thal">Thalassemia</label>
+                        <select id="thal" name="thal" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="3">Normal</option>
+                            <option value="6">Fixed Defect</option>
+                            <option value="7">Reversible Defect</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-predict" id="btnPredict">
+                    <span>🩺</span>
+                    <span id="btnPredictText">Get Predictions</span>
+                </button>
+            </form>
+            <div id="predictionResults" class="prediction-results" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="spinner-lg"></div>
+    <p id="loadingText">Training models...</p>
+</div>
+
+<script>
+// ==================================
+// State
+// ==================================
+let chartInstance = null;
+let modelsTrained = false;
+
+// ==================================
+// Train & Evaluate
+// ==================================
+async function trainModels() {
+    const btn = document.getElementById('btnTrain');
+    const btnText = document.getElementById('btnTrainText');
+    const overlay = document.getElementById('loadingOverlay');
+
+    btn.disabled = true;
+    btnText.textContent = 'Training...';
+    overlay.style.display = 'flex';
+
+    try {
+        const res = await fetch('/api/train', { method: 'POST' });
+        const json = await res.json();
+
+        if (json.status === 'error') {
+            showToast(json.message);
+            return;
+        }
+
+        const data = json.data;
+        modelsTrained = true;
+
+        renderDatasetBar(data.dataset_info);
+        renderModelCards(data);
+        renderChart(data);
+
+        // Show prediction section
+        document.getElementById('predictionSection').style.display = 'block';
+
+        btnText.textContent = 'Re-train Models';
+    } catch (err) {
+        showToast('Failed to train models: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        overlay.style.display = 'none';
+    }
+}
+
+// ==================================
+// Dataset Bar
+// ==================================
+function renderDatasetBar(info) {
+    const bar = document.getElementById('datasetBar');
+    bar.style.display = 'grid';
+    bar.innerHTML = `
+        <div class="dataset-stat fade-up">
+            <div class="stat-value">${info.total_samples}</div>
+            <div class="stat-label">Total Samples</div>
+        </div>
+        <div class="dataset-stat fade-up fade-up-delay-1">
+            <div class="stat-value">${info.train_samples}</div>
+            <div class="stat-label">Training Set</div>
+        </div>
+        <div class="dataset-stat fade-up fade-up-delay-2">
+            <div class="stat-value">${info.test_samples}</div>
+            <div class="stat-label">Test Set</div>
+        </div>
+        <div class="dataset-stat fade-up fade-up-delay-3">
+            <div class="stat-value">${info.features}</div>
+            <div class="stat-label">Features</div>
+        </div>
+        <div class="dataset-stat fade-up fade-up-delay-1">
+            <div class="stat-value">${info.positive_class}</div>
+            <div class="stat-label">Disease Cases</div>
+        </div>
+        <div class="dataset-stat fade-up fade-up-delay-2">
+            <div class="stat-value">${info.negative_class}</div>
+            <div class="stat-label">Healthy Cases</div>
+        </div>
+    `;
+}
+
+// ==================================
+// Model Cards
+// ==================================
+function getMetricClass(value) {
+    if (value >= 85) return 'high';
+    if (value >= 70) return 'medium';
+    return 'low';
+}
+
+function renderModelCards(data) {
+    const section = document.getElementById('modelsSection');
+    const grid = document.getElementById('modelsGrid');
+    section.style.display = 'block';
+
+    const modelNames = Object.keys(data).filter(k => k !== 'best_model' && k !== 'dataset_info');
+
+    grid.innerHTML = modelNames.map((name, i) => {
+        const m = data[name];
+        const isBest = name === data.best_model;
+        const cm = m.confusion_matrix;
+
+        return `
+        <div class="model-card fade-up fade-up-delay-${i + 1} ${isBest ? 'is-best' : ''}">
+            <div class="model-card-header">
+                <div class="model-name">${name}</div>
+                ${isBest ? '<span class="best-badge">⭐ Best Model</span>' : ''}
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value ${getMetricClass(m.accuracy)}">${m.accuracy}%</div>
+                    <div class="metric-label">Accuracy</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value ${getMetricClass(m.roc_auc)}">${m.roc_auc}%</div>
+                    <div class="metric-label">ROC-AUC</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value ${getMetricClass(m.precision)}">${m.precision}%</div>
+                    <div class="metric-label">Precision</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value ${getMetricClass(m.recall)}">${m.recall}%</div>
+                    <div class="metric-label">Recall</div>
+                </div>
+                <div class="metric-item" style="grid-column: span 2;">
+                    <div class="metric-value ${getMetricClass(m.f1)}">${m.f1}%</div>
+                    <div class="metric-label">F1 Score</div>
+                </div>
+            </div>
+            <div class="cm-section">
+                <div class="cm-title">Confusion Matrix</div>
+                <table class="cm-table">
+                    <thead>
+                        <tr><th></th><th>Pred: Healthy</th><th>Pred: Disease</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Actual: Healthy</th>
+                            <td class="cm-tn">${cm[0][0]}</td>
+                            <td class="cm-fp">${cm[0][1]}</td>
+                        </tr>
+                        <tr>
+                            <th>Actual: Disease</th>
+                            <td class="cm-fn">${cm[1][0]}</td>
+                            <td class="cm-tp">${cm[1][1]}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ==================================
+// Chart
+// ==================================
+function renderChart(data) {
+    const section = document.getElementById('chartsSection');
+    section.style.display = 'block';
+
+    const modelNames = Object.keys(data).filter(k => k !== 'best_model' && k !== 'dataset_info');
+    const metrics = ['accuracy', 'roc_auc', 'precision', 'recall', 'f1'];
+    const labels = ['Accuracy', 'ROC-AUC', 'Precision', 'Recall', 'F1 Score'];
+    const colors = [
+        { bg: 'rgba(59, 130, 246, 0.7)', border: '#3b82f6' },
+        { bg: 'rgba(139, 92, 246, 0.7)', border: '#8b5cf6' },
+        { bg: 'rgba(16, 185, 129, 0.7)', border: '#10b981' }
+    ];
+
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: modelNames.map((name, i) => ({
+                label: name,
+                data: metrics.map(m => data[name][m]),
+                backgroundColor: colors[i].bg,
+                borderColor: colors[i].border,
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#94a3b8',
+                        font: { family: 'Inter', size: 13, weight: '500' },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'rectRounded'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#94a3b8',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    padding: 14,
+                    cornerRadius: 10,
+                    titleFont: { family: 'Inter', weight: '600' },
+                    bodyFont: { family: 'Inter' },
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: { color: '#64748b', font: { family: 'Inter', size: 12 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: {
+                        color: '#64748b',
+                        font: { family: 'Inter', size: 12 },
+                        callback: v => v + '%'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ==================================
+// Prediction
+// ==================================
+async function predictPatient(e) {
+    e.preventDefault();
+
+    if (!modelsTrained) {
+        showToast('Please train models first!');
+        return;
+    }
+
+    const btn = document.getElementById('btnPredict');
+    const btnText = document.getElementById('btnPredictText');
+    btn.disabled = true;
+    btnText.textContent = 'Predicting...';
+
+    const fields = ['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'];
+    const payload = {};
+    fields.forEach(f => {
+        payload[f] = document.getElementById(f).value;
+    });
+
+    try {
+        const res = await fetch('/api/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+
+        if (json.status === 'error') {
+            showToast(json.message);
+            return;
+        }
+
+        renderPredictionResults(json.data);
+    } catch (err) {
+        showToast('Prediction failed: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Get Predictions';
+    }
+}
+
+function renderPredictionResults(data) {
+    const container = document.getElementById('predictionResults');
+    container.style.display = 'grid';
+
+    container.innerHTML = Object.entries(data).map(([name, pred]) => {
+        const isDisease = pred.prediction === 'Heart Disease';
+        const cls = isDisease ? 'disease' : 'no-disease';
+        return `
+        <div class="pred-card fade-up">
+            <div class="pred-model-name">${name}</div>
+            <div class="pred-result ${cls}">${isDisease ? '⚠️' : '✅'} ${pred.prediction}</div>
+            <div class="pred-confidence">Confidence: ${pred.confidence}%</div>
+            <div class="pred-confidence">Disease Probability: ${pred.probability_disease}%</div>
+            <div class="pred-bar">
+                <div class="pred-bar-fill ${cls}" style="width: ${pred.probability_disease}%"></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ==================================
+// Toast
+// ==================================
+function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = '❌ ' + msg;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 5000);
+}
+</script>
+
+</body>
+</html>
